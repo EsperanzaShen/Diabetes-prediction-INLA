@@ -6,7 +6,7 @@ inits <- function(){list(alpha=0,tau.delta=1,tau.gamma1=1, tau.gamma=1)}
 formula.bugs <- function() {
 for (i in 1:17) {
   for (t in 1:11){
-    diab_count ~ dpois(lambda[i,t])
+    diab_count ~ dpois(lambda[i,t]) ##pay attention to the structure of data used here
     log(lambda[i,t]) <- log(person_yr[i,t]) + alpha + delta[i] + gamma[t]
     rho[i,t] <- exp(alpha + delta[i] + gamma[t]) ## RR
   }
