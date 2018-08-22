@@ -1,0 +1,38 @@
+data <- list("diab_count", "person_yr","num","adj","sumNumNeigh")
+para <- c("alpha","delta","gamma")
+
+inits <- function(){list(alpha=0,tau.delta=1,tau.gamma1=1, tau.gamma=1)}
+
+formula.bugs <- function() {
+for (i in 1:17) {
+  for (t in 1:11){
+    diab_count ~ dpois(lambda[i,t])
+    log(lambda[i,t]) <- log(person_yr[i,t]) + alpha + delta[i] + gamma[t]
+    rho[i,t] <- exp(alpha + delta[i] + gamma[t]) ## RR
+  }
+  rhoiadj[i] <- exp(delta[i]) ## RR adjusted for covariates averaged over all years
+}
+
+delta[1:17] ~ car.normal(adj[],weights[],num[],tau.delta)
+for (k in 1:sumNumNeigh) {
+  weights[k] <- 1
+}
+
+gamma[1] ~ dnorm(0, tau.gamma1)
+for (t in 2:11){
+  gamma[t] ~ dnorm(gamma[t-1], tau.gamma)
+  rhotadj[t] <- exp(gamma[t]) ## RR adjusted for covariates in year 2-11 averaged over all districts
+}
+alpha ~ dflat()
+tau.delta ~ dgamma(0.5,0.0005)
+tau.gamma1 ~ dgamma(0.5,0.0005)
+tau.gamma ~ dgamma(0.5,0.0005)
+}
+
+mod.bugs <- bugs(data=data,
+                 parameters.to.save = para,
+                 model.file = formula.bugs,
+                 inits = inits,
+                 n.chains = 3,
+                 n.iter = 1000,
+                 debug = TRUE)
